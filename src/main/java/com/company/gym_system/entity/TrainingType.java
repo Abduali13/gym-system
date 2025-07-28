@@ -1,10 +1,16 @@
 package com.company.gym_system.entity;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.Setter;
+
 
 @Getter
-@Setter
-public class TrainingType {
-    private String trainingTypeName;
+@AllArgsConstructor
+public enum TrainingType {
+    CARDIO("Cardio"),
+    STRENGTH("Strength"),
+    FLEXIBILITY("Flexibility");
+
+    private final String displayName;
+
 }

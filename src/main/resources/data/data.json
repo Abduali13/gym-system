@@ -1,0 +1,11 @@
+{
+  "trainees": [
+    { "userId": 1, "traineeId": 1, "address": "123 Elm", "birthDate": "1990-01-01", "firstName":"Alice","lastName":"Smith" }
+  ],
+  "trainers": [
+    { "userId": 2, "trainerId": 1, "address": "456 Oak", "birthDate": "1985-05-05", "firstName":"Bob","lastName":"Jones" }
+  ],
+  "trainings": [
+    { "trainingId": "1", "traineeId": "1", "trainerId": "1", "date":"2025-07-25", "trainingDuration":60, "trainingType":"CARDIO" }
+  ]
+}

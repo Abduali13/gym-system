@@ -1,7 +1,8 @@
-package com.company.gym_system.service;
+package com.company.gym_system.service.impl;
 
-import com.company.gym_system.dao.GenericDao;
+import com.company.gym_system.dao.TraineeDao;
 import com.company.gym_system.entity.Trainee;
+import com.company.gym_system.service.TraineeService;
 import com.company.gym_system.util.UsernamePasswordUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,11 +15,11 @@ import java.util.Optional;
 @Slf4j
 @Service
 public class TraineeServiceImpl implements TraineeService {
-    private GenericDao<Trainee> traineeDao;
+    private TraineeDao traineeDao;
     private Map<String, Object> existingUsernames;
 
     @Autowired
-    public void setTraineeDao(GenericDao<Trainee> traineeDao) {
+    public void setTraineeDao(TraineeDao traineeDao) {
         this.traineeDao = traineeDao;
     }
 
@@ -42,10 +43,12 @@ public class TraineeServiceImpl implements TraineeService {
         savedTrainee.setLastName(trainee.getLastName());
         savedTrainee.setUsername(username);
         savedTrainee.setPassword(password);
+        savedTrainee.setAddress(trainee.getAddress());
+        savedTrainee.setBirthDate(trainee.getBirthDate());
         savedTrainee.setIsActive(true);
 
         Trainee save = traineeDao.save(savedTrainee);
-        existingUsernames.put(username, savedTrainee); // Add to the username map
+        existingUsernames.put(username, save); // Add to the username map
         log.info("Trainee with ID {} created.", save.getTraineeId());
         return save;
     }

@@ -1,25 +1,22 @@
-package com.company.gym_system.service;
+package com.company.gym_system.service.impl;
 
-import com.company.gym_system.dao.GenericDao;
+import com.company.gym_system.dao.TrainingDao;
 import com.company.gym_system.entity.Training;
+import com.company.gym_system.service.TrainingService;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
-import java.util.Map;
 
 @Slf4j
 @Component
-public class TrainingServiceImpl implements TrainingService{
+public class TrainingServiceImpl implements TrainingService {
 
-    private GenericDao<Training> trainingDao;
+    private TrainingDao trainingDao;
 
     @Autowired
-    public void setTrainingDao(GenericDao<Training> trainingDao) {
+    public void setTrainingDao(TrainingDao trainingDao) {
         this.trainingDao = trainingDao;
     }
 
@@ -34,7 +31,8 @@ public class TrainingServiceImpl implements TrainingService{
         savedTraining.setTraineeId(training.getTraineeId());
 
         Training save = trainingDao.save(savedTraining);
-        log.info("Training with ID {} created.", save.getId());
+
+        log.info("Training with ID {} created.", save.getTrainingId());
         return save;
     }
 

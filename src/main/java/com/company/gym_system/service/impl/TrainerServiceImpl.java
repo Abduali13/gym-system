@@ -1,7 +1,8 @@
-package com.company.gym_system.service;
+package com.company.gym_system.service.impl;
 
-import com.company.gym_system.dao.GenericDao;
+import com.company.gym_system.dao.TrainerDao;
 import com.company.gym_system.entity.Trainer;
+import com.company.gym_system.service.TrainerService;
 import com.company.gym_system.util.UsernamePasswordUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,13 +14,13 @@ import java.util.Optional;
 
 @Slf4j
 @Service
-public class TrainerServiceImpl implements TrainerService{
+public class TrainerServiceImpl implements TrainerService {
 
-    private GenericDao<Trainer> trainerDao;
+    private TrainerDao trainerDao;
     private Map<String, Object> existingUsernames;
 
     @Autowired
-    public void setTrainerDao(GenericDao<Trainer> trainerDao) {
+    public void setTrainerDao(TrainerDao trainerDao) {
         this.trainerDao = trainerDao;
     }
     @Autowired
@@ -37,15 +38,19 @@ public class TrainerServiceImpl implements TrainerService{
 
         String password = UsernamePasswordUtil.generateRandomPassword();
 
-        trainer.setUsername(username);
-        trainer.setPassword(password);
-        trainer.setIsActive(true);
+        Trainer savedTrainer = new Trainer();
+        savedTrainer.setFirstName(trainer.getFirstName());
+        savedTrainer.setLastName(trainer.getLastName());
+        savedTrainer.setUsername(username);
+        savedTrainer.setPassword(password);
+        savedTrainer.setIsActive(true);
+        savedTrainer.setSpecialization(savedTrainer.getSpecialization());
 
-        Trainer savedTrainer = trainerDao.save(trainer);
-        existingUsernames.put(username, trainer);
-        log.info("Trainer with ID {} created.", savedTrainer.getTrainerId());
+        Trainer save = trainerDao.save(savedTrainer);
+        existingUsernames.put(username, save);
+        log.info("Trainer with ID {} created.", save.getTrainerId());
 
-        return savedTrainer;
+        return save;
     }
 
     @Override

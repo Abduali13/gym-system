@@ -1,8 +1,8 @@
 package com.company.gym_system.service;
 
-import com.company.gym_system.dao.GenericDao;
+import com.company.gym_system.dao.TrainerDao;
 import com.company.gym_system.entity.Trainer;
-import com.company.gym_system.entity.TrainingType;
+import com.company.gym_system.service.impl.TrainerServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -25,7 +25,7 @@ import static org.mockito.Mockito.*;
 class TrainerServiceImplTest {
 
     @Mock
-    private GenericDao<Trainer> trainerDao;
+    private TrainerDao trainerDao;
 
     @InjectMocks
     private TrainerServiceImpl trainerService;
@@ -51,7 +51,7 @@ class TrainerServiceImplTest {
     @Test
     @DisplayName("Should create trainer with generated username and password")
     void create_ShouldCreateTrainerWithGeneratedUsernameAndPassword() {
-        // Arrange
+
         Trainer inputTrainer = new Trainer();
         inputTrainer.setFirstName("John");
         inputTrainer.setLastName("Doe");
@@ -63,10 +63,8 @@ class TrainerServiceImplTest {
             return savedTrainer;
         });
 
-        // Act
         Trainer createdTrainer = trainerService.create(inputTrainer);
 
-        // Assert
         assertNotNull(createdTrainer);
         assertEquals("John", createdTrainer.getFirstName());
         assertEquals("Doe", createdTrainer.getLastName());
@@ -84,14 +82,12 @@ class TrainerServiceImplTest {
     @Test
     @DisplayName("Should update trainer when it exists")
     void update_ShouldUpdateTrainer_WhenTrainerExists() {
-        // Arrange
+
         when(trainerDao.findById(1L)).thenReturn(Optional.of(trainer));
         when(trainerDao.save(trainer)).thenReturn(trainer);
 
-        // Act
         Trainer updatedTrainer = trainerService.update(trainer);
 
-        // Assert
         assertNotNull(updatedTrainer);
         assertEquals(trainer, updatedTrainer);
         verify(trainerDao).findById(1L);
@@ -101,10 +97,10 @@ class TrainerServiceImplTest {
     @Test
     @DisplayName("Should throw exception when updating non-existent trainer")
     void update_ShouldThrowException_WhenTrainerDoesNotExist() {
-        // Arrange
+
         when(trainerDao.findById(1L)).thenReturn(Optional.empty());
 
-        // Act & Assert
+
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
             trainerService.update(trainer);
         });
@@ -116,17 +112,15 @@ class TrainerServiceImplTest {
     @Test
     @DisplayName("Should list all trainers")
     void listAll_ShouldListAllTrainers() {
-        // Arrange
+
         Trainer anotherTrainer = new Trainer();
         anotherTrainer.setTrainerId(2L);
         anotherTrainer.setSpecialization("Strength");
         List<Trainer> trainers = Arrays.asList(trainer, anotherTrainer);
         when(trainerDao.findAll()).thenReturn(trainers);
 
-        // Act
         List<Trainer> result = trainerService.listAll();
 
-        // Assert
         assertEquals(2, result.size());
         assertTrue(result.contains(trainer));
         assertTrue(result.contains(anotherTrainer));

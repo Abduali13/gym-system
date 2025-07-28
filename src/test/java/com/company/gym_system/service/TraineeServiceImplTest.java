@@ -1,7 +1,9 @@
 package com.company.gym_system.service;
 
-import com.company.gym_system.dao.GenericDao;
+
+import com.company.gym_system.dao.TraineeDao;
 import com.company.gym_system.entity.Trainee;
+import com.company.gym_system.service.impl.TraineeServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -24,7 +26,7 @@ import static org.mockito.Mockito.*;
 class TraineeServiceImplTest {
 
     @Mock
-    private GenericDao<Trainee> traineeDao;
+    private TraineeDao traineeDao;
 
     @InjectMocks
     private TraineeServiceImpl traineeService;
@@ -49,7 +51,7 @@ class TraineeServiceImplTest {
     @Test
     @DisplayName("Should create trainee with generated username and password")
     void create_ShouldCreateTraineeWithGeneratedUsernameAndPassword() {
-        // Arrange
+
         Trainee inputTrainee = new Trainee();
         inputTrainee.setFirstName("John");
         inputTrainee.setLastName("Doe");
@@ -60,10 +62,8 @@ class TraineeServiceImplTest {
             return savedTrainee;
         });
 
-        // Act
         Trainee createdTrainee = traineeService.create(inputTrainee);
 
-        // Assert
         assertNotNull(createdTrainee);
         assertEquals("John", createdTrainee.getFirstName());
         assertEquals("Doe", createdTrainee.getLastName());
@@ -80,14 +80,12 @@ class TraineeServiceImplTest {
     @Test
     @DisplayName("Should update trainee when it exists")
     void update_ShouldUpdateTrainee_WhenTraineeExists() {
-        // Arrange
+
         when(traineeDao.findById(1L)).thenReturn(Optional.of(trainee));
         when(traineeDao.save(trainee)).thenReturn(trainee);
 
-        // Act
         Trainee updatedTrainee = traineeService.update(trainee);
 
-        // Assert
         assertNotNull(updatedTrainee);
         assertEquals(trainee, updatedTrainee);
         verify(traineeDao).findById(1L);
@@ -97,10 +95,9 @@ class TraineeServiceImplTest {
     @Test
     @DisplayName("Should throw exception when updating non-existent trainee")
     void update_ShouldThrowException_WhenTraineeDoesNotExist() {
-        // Arrange
+
         when(traineeDao.findById(1L)).thenReturn(Optional.empty());
 
-        // Act & Assert
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
             traineeService.update(trainee);
         });
@@ -112,14 +109,12 @@ class TraineeServiceImplTest {
     @Test
     @DisplayName("Should delete trainee and remove username from map")
     void delete_ShouldDeleteTraineeAndRemoveUsernameFromMap() {
-        // Arrange
+
         when(traineeDao.findById(1L)).thenReturn(Optional.of(trainee));
         existingUsernames.put("john.doe", trainee);
 
-        // Act
         traineeService.delete(1L);
 
-        // Assert
         verify(traineeDao).findById(1L);
         verify(traineeDao).delete(1L);
         assertFalse(existingUsernames.containsKey("john.doe"));
@@ -128,24 +123,22 @@ class TraineeServiceImplTest {
     @Test
     @DisplayName("Should handle exception when deleting trainee fails")
     void delete_ShouldHandleException_WhenDeletingTraineeFails() {
-        // Arrange
+
         when(traineeDao.findById(1L)).thenReturn(Optional.of(trainee));
         doThrow(new RuntimeException("Delete failed")).when(traineeDao).delete(1L);
         existingUsernames.put("john.doe", trainee);
 
-        // Act
         traineeService.delete(1L);
 
-        // Assert
         verify(traineeDao).findById(1L);
         verify(traineeDao).delete(1L);
-        assertTrue(existingUsernames.containsKey("john.doe")); // Username should still be in map
+        assertTrue(existingUsernames.containsKey("john.doe"));
     }
 
     @Test
     @DisplayName("Should list all trainees")
     void listAll_ShouldListAllTrainees() {
-        // Arrange
+
         Trainee anotherTrainee = new Trainee();
         anotherTrainee.setTraineeId(2L);
         anotherTrainee.setFirstName("Jane");
@@ -153,10 +146,8 @@ class TraineeServiceImplTest {
         List<Trainee> trainees = Arrays.asList(trainee, anotherTrainee);
         when(traineeDao.findAll()).thenReturn(trainees);
 
-        // Act
         List<Trainee> result = traineeService.listAll();
 
-        // Assert
         assertEquals(2, result.size());
         assertTrue(result.contains(trainee));
         assertTrue(result.contains(anotherTrainee));

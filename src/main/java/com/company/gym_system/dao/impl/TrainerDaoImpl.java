@@ -1,6 +1,8 @@
-package com.company.gym_system.dao;
+package com.company.gym_system.dao.impl;
 
+import com.company.gym_system.dao.TrainerDao;
 import com.company.gym_system.entity.Trainer;
+import com.company.gym_system.util.IdGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
@@ -10,11 +12,16 @@ import java.util.Map;
 import java.util.Optional;
 
 @Repository
-public abstract class TrainerDaoImpl implements GenericDao<Trainer> {
+public class TrainerDaoImpl implements TrainerDao {
 
     private Map<Long, Object> store;
-    private Long idGenerator = 0L;
+    private Long trainerIdGenerator = 0L;
+    private final IdGenerator idGenerator;
 
+    @Autowired
+    public TrainerDaoImpl(IdGenerator idGenerator) {
+        this.idGenerator = idGenerator;
+    }
     @Autowired
     public void setStore(@Qualifier("trainerStorage") Map<Long, Object> store) {
         this.store = store;
@@ -23,7 +30,11 @@ public abstract class TrainerDaoImpl implements GenericDao<Trainer> {
     @Override
     public Trainer save(Trainer trainer) {
         if (trainer.getTrainerId() == null){
-            trainer.setTrainerId(idGenerator++);
+            trainer.setTrainerId(trainerIdGenerator++);
+        }
+        if (trainer.getUserId() == null){
+            Long id = idGenerator.nextId();
+            trainer.setUserId(id);
         }
         store.put(trainer.getTrainerId(), trainer);
         return trainer;
