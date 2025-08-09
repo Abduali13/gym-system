@@ -1,11 +1,14 @@
 package com.company.gym_system.util;
 
 
+import com.company.gym_system.entity.User;
+import com.company.gym_system.repository.TraineeRepository;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
 import java.security.SecureRandom;
-import java.util.Map;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class UsernamePasswordUtil {
@@ -13,13 +16,12 @@ public final class UsernamePasswordUtil {
     private static final String CHAR_POOL = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
     private static final int PASSWORD_LENGTH = 10;
 
-    public static String generateUsername(String firstName, String lastName, Map<String, Object> existingEntries
-    ) {
+
+    public static String generateUsername(String firstName, String lastName, boolean isExists) {
         String baseUsername = firstName + "." + lastName;
         int count = 1;
         String username = baseUsername;
-
-        while (existingEntries.containsKey(username)) {
+        if (isExists){
             username = baseUsername + count++;
         }
 

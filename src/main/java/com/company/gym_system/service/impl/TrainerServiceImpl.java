@@ -1,77 +1,210 @@
 package com.company.gym_system.service.impl;
 
-import com.company.gym_system.dao.TrainerDao;
+import com.company.gym_system.config.AuthGuard;
+import com.company.gym_system.entity.Trainee;
 import com.company.gym_system.entity.Trainer;
+import com.company.gym_system.entity.Training;
+import com.company.gym_system.entity.User;
+import com.company.gym_system.repository.TraineeRepository;
+import com.company.gym_system.repository.TrainerRepository;
+import com.company.gym_system.repository.TrainingRepository;
 import com.company.gym_system.service.TrainerService;
-import com.company.gym_system.util.UsernamePasswordUtil;
-import lombok.extern.slf4j.Slf4j;
+import com.company.gym_system.service.specs.TrainingSpecs;
+import jakarta.persistence.EntityNotFoundException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
-@Slf4j
+import static com.company.gym_system.util.UsernamePasswordUtil.generateRandomPassword;
+import static com.company.gym_system.util.UsernamePasswordUtil.generateUsername;
+
 @Service
+@Transactional
 public class TrainerServiceImpl implements TrainerService {
 
-    private TrainerDao trainerDao;
-    private Map<String, Object> existingUsernames;
+    private final TrainerRepository trainerRepository;
+    private final TraineeRepository traineeRepository;
+    private final TrainingRepository trainingRepository;
+    private final AuthGuard authGuard;
+    private final Logger log = LoggerFactory.getLogger(getClass());
 
     @Autowired
-    public void setTrainerDao(TrainerDao trainerDao) {
-        this.trainerDao = trainerDao;
-    }
-    @Autowired
-    public void setExistingUsernames(Map<String, Object> existingUsernames) {
-        this.existingUsernames = existingUsernames;
+    public TrainerServiceImpl(
+            TrainerRepository trainerRepository,
+            TraineeRepository traineeRepository,
+            TrainingRepository trainingRepository,
+            AuthGuard authGuard) {
+        this.trainerRepository = trainerRepository;
+        this.traineeRepository = traineeRepository;
+        this.trainingRepository = trainingRepository;
+        this.authGuard = authGuard;
     }
 
     @Override
-    public Trainer create(Trainer trainer) {
-        String username = UsernamePasswordUtil.generateUsername(
-                trainer.getFirstName(),
-                trainer.getLastName(),
-                existingUsernames
+    public Trainer create(String fn, String ln, String specialty) {
+        try {
+            Trainer trainer = new Trainer();
+            User user = new User();
+            user.setFirstName(fn);
+            user.setLastName(ln);
+            user.setUsername(generateUsername(fn, ln, trainerRepository.existsByUser_Username(fn + ln)));
+            user.setPassword(generateRandomPassword());
+            trainer.setUser(user);
+            trainer.setSpecialization(specialty);
+
+            Trainer saved = trainerRepository.save(trainer);
+            log.info("Trainer has been created successfully");
+            return saved;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    @Override
+    public Trainer update(String username, String password, Trainer updates) {
+        try {
+            authGuard.checkTrainer(username, password);
+            Trainer trainer = trainerRepository.findByUser_Username(username)
+                    .orElseThrow(() -> new EntityNotFoundException(username));
+
+            BeanUtils.copyProperties(updates, trainer,
+                    "id", "username", "password", "isActive");
+
+            log.info("Updated trainer {}", username);
+            return trainerRepository.save(trainer);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    @Override
+    public void changePassword(String username, String oldPwd, String newPwd) {
+        try {
+            authGuard.checkTrainer(username, oldPwd);
+            Trainer trainer = trainerRepository.findByUser_Username(username)
+                    .orElseThrow(() -> new EntityNotFoundException(username));
+
+            trainer.getUser().setPassword(newPwd);
+            trainerRepository.save(trainer);
+            log.info("Trainer {} changed password", username);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void activate(String username, String password, boolean active) {
+        try {
+            authGuard.checkTrainer(username, password);
+            Trainer trainer = trainerRepository.findByUser_Username(username)
+                    .orElseThrow(() -> new EntityNotFoundException(username));
+
+            if (trainer.getUser().getIsActive().equals(active)) {
+                throw new IllegalStateException("Already in that state");
+            }
+            trainer.getUser().setIsActive(active);
+            trainerRepository.save(trainer);
+            log.info("{} trainer {}", active ? "Activated" : "Deactivated", username);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void delete(String username, String password) {
+        try {
+            authGuard.checkTrainer(username, password);
+            Trainer trainer = trainerRepository.findByUser_Username(username)
+                    .orElseThrow(() -> new EntityNotFoundException(username));
+
+            trainerRepository.delete(trainer);
+            log.info("Deleted trainer {}", username);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Trainer findByUsername(String username, String password) {
+        try {
+            authGuard.checkTrainer(username, password);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        return trainerRepository.findByUser_Username(username)
+                .orElseThrow(() -> new EntityNotFoundException(username));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Training> getTrainings(String username, String password,
+                                       LocalDate from, LocalDate to, String traineeName) {
+        try {
+            authGuard.checkTrainer(username, password);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        Specification<Training> spec = Specification.allOf(
+                TrainingSpecs.byTrainerUsername(username),
+                TrainingSpecs.byDateRange(from, to),
+                TrainingSpecs.byTraineeName(traineeName)
         );
 
-        String password = UsernamePasswordUtil.generateRandomPassword();
-
-        Trainer savedTrainer = new Trainer();
-        savedTrainer.setFirstName(trainer.getFirstName());
-        savedTrainer.setLastName(trainer.getLastName());
-        savedTrainer.setUsername(username);
-        savedTrainer.setPassword(password);
-        savedTrainer.setIsActive(true);
-        savedTrainer.setSpecialization(savedTrainer.getSpecialization());
-
-        Trainer save = trainerDao.save(savedTrainer);
-        existingUsernames.put(username, save);
-        log.info("Trainer with ID {} created.", save.getTrainerId());
-
-        return save;
+        return trainingRepository.findAll(spec);
     }
 
     @Override
-    public Trainer update(Trainer trainer) {
-        Optional<Trainer> existingTrainer = trainerDao.findById(trainer.getTrainerId());
-        if (existingTrainer.isPresent()) {
-            Trainer updatedTrainer = trainerDao.save(trainer);
-            log.info("Trainer with ID {} updated successfully.", updatedTrainer.getTrainerId());
-            return updatedTrainer;
+    @Transactional(readOnly = true)
+    public List<Trainee> findUnassignedTrainees(String username, String password) {
+        try {
+            authGuard.checkTrainer(username, password);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
-        else {
-            log.error("Failed to update trainer: Trainer with ID {} does not exist.", trainer.getTrainerId());
-            throw new IllegalArgumentException("Trainer with ID " + trainer.getTrainerId() + " does not exist.");
+        Trainer trainer = trainerRepository.findByUser_Username(username)
+                .orElseThrow(() -> new EntityNotFoundException(username));
+
+        return traineeRepository.findAll().stream()
+                .filter(trn -> !trainer.getTrainees().contains(trn))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public void updateTrainees(String username, String password, Set<String> traineeUsernames) {
+        try {
+            authGuard.checkTrainer(username, password);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
+        Trainer trainer = trainerRepository.findByUser_Username(username)
+                .orElseThrow(() -> new EntityNotFoundException(username));
+
+        List<Trainee> trainees = traineeUsernames.stream()
+                .map(un -> traineeRepository.findByUser_Username(un)
+                        .orElseThrow(() -> new EntityNotFoundException(un)))
+                .toList();
+
+        trainer.setTrainees(trainees);
+        trainerRepository.save(trainer);
+        log.info("Updated trainees for {}", username);
     }
 
     @Override
     public List<Trainer> listAll() {
-        List<Trainer> trainers = trainerDao.findAll();
-        log.info("Retrieved {} trainers from storage.", trainers.size());
-        return trainers;
+        return this.trainerRepository.findAll().stream().filter(t -> t.getUser().getIsActive())
+                .collect(Collectors.toList());
     }
-
 }
