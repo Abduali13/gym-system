@@ -6,10 +6,9 @@ import static org.junit.jupiter.api.Assertions.*;
 import java.nio.file.AccessDeniedException;
 import java.time.LocalDate;
 import java.util.Optional;
-import java.util.Set;
 import java.util.List;
 
-import com.company.gym_system.config.AuthGuard;
+import com.company.gym_system.service.AuthGuard;
 import com.company.gym_system.entity.Trainee;
 import com.company.gym_system.entity.Trainer;
 import com.company.gym_system.entity.User;

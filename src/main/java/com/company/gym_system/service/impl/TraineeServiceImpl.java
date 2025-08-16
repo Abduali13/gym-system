@@ -1,18 +1,19 @@
 package com.company.gym_system.service.impl;
 
-import com.company.gym_system.config.AuthGuard;
 import com.company.gym_system.entity.Trainee;
 import com.company.gym_system.entity.Trainer;
 import com.company.gym_system.entity.Training;
 import com.company.gym_system.entity.User;
-import com.company.gym_system.repository.*;
+import com.company.gym_system.repository.TraineeRepository;
+import com.company.gym_system.repository.TrainerRepository;
+import com.company.gym_system.repository.TrainingRepository;
+import com.company.gym_system.service.AuthGuard;
 import com.company.gym_system.service.TraineeService;
 import com.company.gym_system.service.specs.TrainingSpecs;
 import jakarta.persistence.EntityNotFoundException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,23 +28,16 @@ import static com.company.gym_system.util.UsernamePasswordUtil.generateRandomPas
 import static com.company.gym_system.util.UsernamePasswordUtil.generateUsername;
 
 
-
+@Slf4j
 @Service
 @Transactional
+@RequiredArgsConstructor
 public class TraineeServiceImpl implements TraineeService {
     private final TraineeRepository traineeRepository;
     private final TrainerRepository trainerRepository;
     private final TrainingRepository trainingRepository;
     private final AuthGuard authGuard;
-    private final Logger log = LoggerFactory.getLogger(getClass());
 
-    @Autowired
-    public TraineeServiceImpl(TraineeRepository traineeRepository, TrainerRepository trainerRepository, TrainingRepository trainingRepository, AuthGuard auth) {
-        this.traineeRepository = traineeRepository;
-        this.trainerRepository = trainerRepository;
-        this.trainingRepository = trainingRepository;
-        this.authGuard = auth;
-    }
 
     @Override
     public Trainee create(String fn, String ln, LocalDate birthDate, String address) {
@@ -87,9 +81,9 @@ public class TraineeServiceImpl implements TraineeService {
     }
 
     @Override
-    public void changePassword(String username, String oldPwd, String newPassword) {
+    public void changePassword(String username, String oldPassword, String newPassword) {
         try {
-            authGuard.checkTrainee(username, oldPwd);
+            authGuard.checkTrainee(username, oldPassword);
             Trainee t = traineeRepository.findByUser_Username(username).get();
             t.getUser().setPassword(newPassword);
             traineeRepository.save(t);
@@ -153,7 +147,7 @@ public class TraineeServiceImpl implements TraineeService {
         }
 
         Specification<Training> spec = Specification.allOf(
-        TrainingSpecs.byTraineeUsername(username),
+                TrainingSpecs.byTraineeUsername(username),
                 TrainingSpecs.byDateRange(from, to),
                 TrainingSpecs.byTrainerName(trainerName),
                 TrainingSpecs.byTrainingType(trainingType));

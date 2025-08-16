@@ -7,7 +7,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
-import com.company.gym_system.config.AuthGuard;
+import com.company.gym_system.service.AuthGuard;
 import com.company.gym_system.entity.*;
 import com.company.gym_system.repository.TraineeRepository;
 import com.company.gym_system.repository.TrainerRepository;
@@ -18,7 +18,6 @@ import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
-import org.springframework.security.access.AccessDeniedException;
 
 class TrainingServiceImplTest {
 
@@ -116,7 +115,7 @@ class TrainingServiceImplTest {
 
     @Test
     void addTraining_ShouldThrowIfAuthFails() throws java.nio.file.AccessDeniedException {
-        doThrow(new AccessDeniedException("Denied"))
+        doThrow(new RuntimeException("Denied"))
                 .when(authGuard).checkTrainer(anyString(), anyString());
 
         assertThrows(RuntimeException.class, () -> trainingService.addTraining(

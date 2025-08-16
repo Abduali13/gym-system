@@ -4,12 +4,11 @@ import static org.mockito.Mockito.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.nio.file.AccessDeniedException;
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-import com.company.gym_system.config.AuthGuard;
+import com.company.gym_system.service.AuthGuard;
 import com.company.gym_system.entity.Trainee;
 import com.company.gym_system.entity.Trainer;
 import com.company.gym_system.entity.Training;
@@ -21,7 +20,6 @@ import com.company.gym_system.service.impl.TrainerServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
-import org.springframework.data.domain.Example;
 import org.springframework.data.jpa.domain.Specification;
 
 class TrainerServiceImplTest {

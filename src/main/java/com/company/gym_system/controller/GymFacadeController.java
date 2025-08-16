@@ -117,9 +117,9 @@ public class GymFacadeController {
 
     @PutMapping("/change-trainer-password")
     public ResponseEntity<Void> changeTrainerPassword(@RequestParam String username,
-                                                      @RequestParam String oldPwd,
-                                                      @RequestParam String newPwd) {
-        gymFacade.changeTrainerPassword(username, oldPwd, newPwd);
+                                                      @RequestParam String oldPassword,
+                                                      @RequestParam String newPassword) {
+        gymFacade.changeTrainerPassword(username, oldPassword, newPassword);
         return ResponseEntity.ok().build();
     }
 

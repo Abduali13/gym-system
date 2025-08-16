@@ -1,4 +1,4 @@
-package com.company.gym_system.config;
+package com.company.gym_system.service;
 
 import com.company.gym_system.entity.Trainee;
 import com.company.gym_system.entity.Trainer;

@@ -12,9 +12,9 @@ import java.util.Set;
 
 @Service
 public interface TraineeService {
-    Trainee create(String fn, String ln, LocalDate birthDate, String address);
+    Trainee create(String firstName, String lastName, LocalDate birthDate, String address);
     Trainee update(String username, String password, Trainee updates) throws AccessDeniedException;
-    void changePassword(String username, String oldPwd, String newPassword);
+    void changePassword(String username, String oldPassword, String newPassword);
     void activate(String username, String password, boolean active);
     void delete(String username, String password);
     Trainee findByUsername(String username, String password);

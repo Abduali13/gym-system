@@ -23,7 +23,7 @@ public class Trainee{
     @Column(name = "address")
     private String address;
 
-    @Column(name = "birthDate")
+    @Column(name = "birth_date")
     private LocalDate birthDate;
 
     @OneToMany(mappedBy = "trainee", cascade = CascadeType.ALL, orphanRemoval = true)

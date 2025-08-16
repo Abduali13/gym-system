@@ -1,6 +1,5 @@
 package com.company.gym_system.service.impl;
 
-import com.company.gym_system.config.AuthGuard;
 import com.company.gym_system.entity.Trainee;
 import com.company.gym_system.entity.Trainer;
 import com.company.gym_system.entity.Training;
@@ -8,13 +7,13 @@ import com.company.gym_system.entity.User;
 import com.company.gym_system.repository.TraineeRepository;
 import com.company.gym_system.repository.TrainerRepository;
 import com.company.gym_system.repository.TrainingRepository;
+import com.company.gym_system.service.AuthGuard;
 import com.company.gym_system.service.TrainerService;
 import com.company.gym_system.service.specs.TrainingSpecs;
 import jakarta.persistence.EntityNotFoundException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,27 +26,17 @@ import java.util.stream.Collectors;
 import static com.company.gym_system.util.UsernamePasswordUtil.generateRandomPassword;
 import static com.company.gym_system.util.UsernamePasswordUtil.generateUsername;
 
+@Slf4j
 @Service
 @Transactional
+@RequiredArgsConstructor
 public class TrainerServiceImpl implements TrainerService {
 
     private final TrainerRepository trainerRepository;
     private final TraineeRepository traineeRepository;
     private final TrainingRepository trainingRepository;
     private final AuthGuard authGuard;
-    private final Logger log = LoggerFactory.getLogger(getClass());
 
-    @Autowired
-    public TrainerServiceImpl(
-            TrainerRepository trainerRepository,
-            TraineeRepository traineeRepository,
-            TrainingRepository trainingRepository,
-            AuthGuard authGuard) {
-        this.trainerRepository = trainerRepository;
-        this.traineeRepository = traineeRepository;
-        this.trainingRepository = trainingRepository;
-        this.authGuard = authGuard;
-    }
 
     @Override
     public Trainer create(String fn, String ln, String specialty) {
@@ -89,13 +78,13 @@ public class TrainerServiceImpl implements TrainerService {
     }
 
     @Override
-    public void changePassword(String username, String oldPwd, String newPwd) {
+    public void changePassword(String username, String oldPassword, String newPassword) {
         try {
-            authGuard.checkTrainer(username, oldPwd);
+            authGuard.checkTrainer(username, oldPassword);
             Trainer trainer = trainerRepository.findByUser_Username(username)
                     .orElseThrow(() -> new EntityNotFoundException(username));
 
-            trainer.getUser().setPassword(newPwd);
+            trainer.getUser().setPassword(newPassword);
             trainerRepository.save(trainer);
             log.info("Trainer {} changed password", username);
         } catch (Exception e) {
@@ -141,7 +130,8 @@ public class TrainerServiceImpl implements TrainerService {
         try {
             authGuard.checkTrainer(username, password);
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            log.error("Access denied for trainer {}", username);
+            e.printStackTrace();
         }
         return trainerRepository.findByUser_Username(username)
                 .orElseThrow(() -> new EntityNotFoundException(username));
@@ -154,7 +144,8 @@ public class TrainerServiceImpl implements TrainerService {
         try {
             authGuard.checkTrainer(username, password);
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            log.error("Access denied for trainer {}", username);
+            e.printStackTrace();
         }
 
         Specification<Training> spec = Specification.allOf(
@@ -172,7 +163,8 @@ public class TrainerServiceImpl implements TrainerService {
         try {
             authGuard.checkTrainer(username, password);
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            log.error("Access denied for trainer {}", username);
+            e.printStackTrace();
         }
         Trainer trainer = trainerRepository.findByUser_Username(username)
                 .orElseThrow(() -> new EntityNotFoundException(username));
@@ -187,7 +179,8 @@ public class TrainerServiceImpl implements TrainerService {
         try {
             authGuard.checkTrainer(username, password);
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            log.error("Access denied for trainer {}", username);
+            e.printStackTrace();
         }
         Trainer trainer = trainerRepository.findByUser_Username(username)
                 .orElseThrow(() -> new EntityNotFoundException(username));

@@ -11,9 +11,9 @@ import java.util.Set;
 
 @Service
 public interface TrainerService {
-    Trainer create(String fn, String ln, String specialty);
+    Trainer create(String firstName, String lastName, String specialty);
     Trainer update(String username, String password, Trainer updates);
-    void changePassword(String username, String oldPwd, String newPwd);
+    void changePassword(String username, String oldPassword, String newPassword);
     void activate(String username, String password, boolean active);
     void delete(String username, String password);
     Trainer findByUsername(String username, String password);
