@@ -1,5 +1,6 @@
 package com.company.gym_system.service.impl;
 
+import com.company.gym_system.dto.*;
 import com.company.gym_system.entity.Trainee;
 import com.company.gym_system.entity.Trainer;
 import com.company.gym_system.entity.Training;
@@ -7,8 +8,10 @@ import com.company.gym_system.entity.User;
 import com.company.gym_system.repository.TraineeRepository;
 import com.company.gym_system.repository.TrainerRepository;
 import com.company.gym_system.repository.TrainingRepository;
-import com.company.gym_system.service.AuthGuard;
+import com.company.gym_system.security.AuthGuard;
 import com.company.gym_system.service.TrainerService;
+import com.company.gym_system.service.mapper.TrainerMapper;
+import com.company.gym_system.service.mapper.TrainingMapper;
 import com.company.gym_system.service.specs.TrainingSpecs;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +21,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.nio.file.AccessDeniedException;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Set;
@@ -36,23 +40,25 @@ public class TrainerServiceImpl implements TrainerService {
     private final TraineeRepository traineeRepository;
     private final TrainingRepository trainingRepository;
     private final AuthGuard authGuard;
+    private final TrainerMapper trainerMapper;
+    private final TrainingMapper trainingMapper;
 
 
     @Override
-    public Trainer create(String fn, String ln, String specialty) {
+    public TrainerRegistrationResponseDto create(String firstName, String lastName, String specialty) {
         try {
             Trainer trainer = new Trainer();
             User user = new User();
-            user.setFirstName(fn);
-            user.setLastName(ln);
-            user.setUsername(generateUsername(fn, ln, trainerRepository.existsByUser_Username(fn + ln)));
+            user.setFirstName(firstName);
+            user.setLastName(firstName);
+            user.setUsername(generateUsername(firstName, lastName, trainerRepository.existsByUser_Username(firstName + lastName)));
             user.setPassword(generateRandomPassword());
             trainer.setUser(user);
             trainer.setSpecialization(specialty);
 
-            Trainer saved = trainerRepository.save(trainer);
+            TrainerRegistrationResponseDto dto = this.trainerMapper.toDto(trainerRepository.save(trainer));
             log.info("Trainer has been created successfully");
-            return saved;
+            return dto;
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -60,17 +66,17 @@ public class TrainerServiceImpl implements TrainerService {
     }
 
     @Override
-    public Trainer update(String username, String password, Trainer updates) {
+    public TrainerUpdateResponseDto update(TrainerUpdateRequestDto updates) {
         try {
-            authGuard.checkTrainer(username, password);
-            Trainer trainer = trainerRepository.findByUser_Username(username)
-                    .orElseThrow(() -> new EntityNotFoundException(username));
+            authGuard.checkTrainer(updates.getUsername(), updates.getPassword());
+            Trainer trainer = trainerRepository.findByUser_Username(updates.getUsername())
+                    .orElseThrow(() -> new EntityNotFoundException(updates.getUsername()));
 
             BeanUtils.copyProperties(updates, trainer,
-                    "id", "username", "password", "isActive");
+                    "id", "username", "password", "isActive", "specialization");
 
-            log.info("Updated trainer {}", username);
-            return trainerRepository.save(trainer);
+            log.info("Updated trainer {}", updates.getUsername());
+            return this.trainerMapper.toUpdateDto(trainerRepository.save(trainer));
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -126,21 +132,21 @@ public class TrainerServiceImpl implements TrainerService {
 
     @Override
     @Transactional(readOnly = true)
-    public Trainer findByUsername(String username, String password) {
+    public TrainerGetResponseDto findByUsername(String username, String password) {
         try {
             authGuard.checkTrainer(username, password);
         } catch (Exception e) {
             log.error("Access denied for trainer {}", username);
             e.printStackTrace();
         }
-        return trainerRepository.findByUser_Username(username)
-                .orElseThrow(() -> new EntityNotFoundException(username));
+        return this.trainerMapper.toGetDto(trainerRepository.findByUser_Username(username)
+                .orElseThrow(() -> new EntityNotFoundException(username)));
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<Training> getTrainings(String username, String password,
-                                       LocalDate from, LocalDate to, String traineeName) {
+    public List<TrainingGetWithTrainerDto> getTrainings(String username, String password,
+                                                        LocalDate from, LocalDate to, String traineeName) {
         try {
             authGuard.checkTrainer(username, password);
         } catch (Exception e) {
@@ -154,24 +160,23 @@ public class TrainerServiceImpl implements TrainerService {
                 TrainingSpecs.byTraineeName(traineeName)
         );
 
-        return trainingRepository.findAll(spec);
+        return this.trainingRepository.findAll(spec).stream().map(this.trainingMapper::toGetWithTrainerDto).toList();
     }
 
     @Override
-    @Transactional(readOnly = true)
-    public List<Trainee> findUnassignedTrainees(String username, String password) {
+    public List<TrainerShortProfileDto> findAvailableTrainers(String username, String password) {
         try {
-            authGuard.checkTrainer(username, password);
-        } catch (Exception e) {
-            log.error("Access denied for trainer {}", username);
-            e.printStackTrace();
+            authGuard.checkTrainee(username, password);
+        } catch (AccessDeniedException e) {
+            throw new RuntimeException(e);
         }
-        Trainer trainer = trainerRepository.findByUser_Username(username)
-                .orElseThrow(() -> new EntityNotFoundException(username));
-
-        return traineeRepository.findAll().stream()
-                .filter(trn -> !trainer.getTrainees().contains(trn))
-                .collect(Collectors.toList());
+        Trainee t = traineeRepository.findByUser_Username(username).get();
+        return this.trainerRepository.findAll().stream()
+                .filter(tr -> !t.getTrainers().contains(tr))
+                .toList()
+                .stream()
+                .map(this.trainerMapper::toShortProfileDto)
+                .toList();
     }
 
     @Override

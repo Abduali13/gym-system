@@ -8,7 +8,7 @@ import com.company.gym_system.repository.TraineeRepository;
 import com.company.gym_system.repository.TrainerRepository;
 import com.company.gym_system.repository.TrainingRepository;
 import com.company.gym_system.repository.TrainingTypeRepository;
-import com.company.gym_system.service.AuthGuard;
+import com.company.gym_system.security.AuthGuard;
 import com.company.gym_system.service.TrainingService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -34,8 +34,10 @@ public class TrainingServiceImpl implements TrainingService {
     private final AuthGuard authGuard;
 
     @Override
-    public Training create(Training training) {
-        return trainingRepository.save(training);
+    public void create(Training training) {
+        log.info("Creating training: {}", training);
+        trainingRepository.save(training);
+        log.info("Training created successfully with id: {}", training.getTrainingId());
     }
 
     @Override
@@ -81,5 +83,10 @@ public class TrainingServiceImpl implements TrainingService {
         Training saved = trainingRepository.save(training);
         log.info("Added training {} for trainee {} with trainer {}", saved.getTrainingId(), trainee.getUser().getUsername(), trainer.getUser().getUsername());
         return saved;
+    }
+
+    @Override
+    public List<TrainingType> getTrainingTypes() {
+        return trainingTypeRepository.findAll();
     }
 }
