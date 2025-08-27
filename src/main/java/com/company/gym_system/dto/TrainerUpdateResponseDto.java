@@ -1,10 +1,13 @@
 package com.company.gym_system.dto;
 
-import lombok.Data;
+import lombok.*;
 
 import java.util.List;
 
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor(access = AccessLevel.PUBLIC)
 public class TrainerUpdateResponseDto {
     private String username;
     private String firstName;

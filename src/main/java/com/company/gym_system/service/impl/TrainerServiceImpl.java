@@ -47,12 +47,19 @@ public class TrainerServiceImpl implements TrainerService {
     @Override
     public TrainerRegistrationResponseDto create(String firstName, String lastName, String specialty) {
         try {
+            if (traineeRepository.existsByUser_FirstNameAndUser_LastName(firstName, lastName)) {
+                throw new IllegalStateException("User is already registered as trainee");
+            }
             Trainer trainer = new Trainer();
             User user = new User();
             user.setFirstName(firstName);
-            user.setLastName(firstName);
-            user.setUsername(generateUsername(firstName, lastName, trainerRepository.existsByUser_Username(firstName + lastName)));
+            user.setLastName(lastName);
+            String baseUsername = firstName + "." + lastName;
+            boolean exists = trainerRepository.existsByUser_Username(baseUsername)
+                    || traineeRepository.existsByUser_Username(baseUsername);
+            user.setUsername(generateUsername(firstName, lastName, exists));
             user.setPassword(generateRandomPassword());
+            user.setIsActive(true);
             trainer.setUser(user);
             trainer.setSpecialization(specialty);
 

@@ -46,12 +46,21 @@ public class TraineeServiceImpl implements TraineeService {
     public TraineeRegistrationResponseDto create(String firstName, String lastName, LocalDate birthDate, String address) {
 
         try {
+            // Prevent registering as both trainer and trainee
+            if (trainerRepository.existsByUser_FirstNameAndUser_LastName(firstName, lastName)) {
+                throw new IllegalStateException("User is already registered as trainer");
+            }
+
             Trainee t = new Trainee();
             User user = new User();
             user.setFirstName(firstName);
             user.setLastName(lastName);
-            user.setUsername(generateUsername(firstName, lastName, this.traineeRepository.existsByUser_Username(firstName + lastName)));
+            String baseUsername = firstName + "." + lastName;
+            boolean exists = this.traineeRepository.existsByUser_Username(baseUsername)
+                    || this.trainerRepository.existsByUser_Username(baseUsername);
+            user.setUsername(generateUsername(firstName, lastName, exists));
             user.setPassword(generateRandomPassword());
+            user.setIsActive(true);
             t.setUser(user);
             t.setAddress(address);
             t.setBirthDate(birthDate);

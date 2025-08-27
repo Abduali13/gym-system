@@ -37,16 +37,22 @@ public class AuthGuard {
     }
 
     public void checkAny(String username, String password) throws AccessDeniedException {
-        Trainee trainee = teRepo.findByUser_Username(username)
-                .orElseThrow(() -> new AccessDeniedException("Invalid trainee"));
-        Trainer trainer = trRepo.findByUser_Username(username)
-                .orElseThrow(() -> new AccessDeniedException("Invalid trainer"));
-        if (!trainee.getUser().getPassword().equals(password) || !trainee.getUser().getIsActive()) {
-            throw new AccessDeniedException("Bad credentials or inactive");
+        var traineeOpt = teRepo.findByUser_Username(username);
+        var trainerOpt = trRepo.findByUser_Username(username);
+
+        if (traineeOpt.isPresent()) {
+            Trainee t = traineeOpt.get();
+            if (Boolean.TRUE.equals(t.getUser().getIsActive()) && t.getUser().getPassword().equals(password)) {
+                return; // authenticated as trainee
+            }
         }
-        if (!trainer.getUser().getPassword().equals(password) || !trainer.getUser().getIsActive()) {
-            throw new AccessDeniedException("Bad credentials or inactive");
+        if (trainerOpt.isPresent()) {
+            Trainer t = trainerOpt.get();
+            if (Boolean.TRUE.equals(t.getUser().getIsActive()) && t.getUser().getPassword().equals(password)) {
+                return; // authenticated as trainer
+            }
         }
+        throw new AccessDeniedException("Invalid credentials or inactive");
     }
 
 

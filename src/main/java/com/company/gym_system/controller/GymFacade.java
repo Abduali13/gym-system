@@ -8,6 +8,7 @@ import com.company.gym_system.entity.TrainingType;
 import com.company.gym_system.service.TraineeService;
 import com.company.gym_system.service.TrainerService;
 import com.company.gym_system.service.TrainingService;
+import com.company.gym_system.repository.TrainingTypeRepository;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -24,6 +25,7 @@ public class GymFacade {
     private final TraineeService traineeService;
     private final TrainerService trainerService;
     private final TrainingService trainingService;
+    private final TrainingTypeRepository trainingTypeRepository;
 
     public TraineeRegistrationResponseDto registerTrainee(@Valid TraineeRegistrationRequestDto request) {
         return traineeService.create(
@@ -125,6 +127,6 @@ public class GymFacade {
     }
 
     public List<TrainingType> getTrainingTypes() {
-        return null;
+        return trainingTypeRepository.findAll();
     }
 }

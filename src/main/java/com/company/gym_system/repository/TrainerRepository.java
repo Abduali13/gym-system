@@ -11,4 +11,5 @@ public interface TrainerRepository extends JpaRepository<Trainer, Long> {
     Optional<Trainer> findByUser_Username(String username);
 
     boolean existsByUser_Username(String username);
+    boolean existsByUser_FirstNameAndUser_LastName(String firstName, String lastName);
 }

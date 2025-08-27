@@ -2,11 +2,15 @@ package com.company.gym_system.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
-import lombok.Data;
+import jakarta.validation.constraints.NotNull;
+import lombok.*;
 
 import java.time.LocalDate;
 
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor(access = AccessLevel.PUBLIC)
 public class TraineeUpdateRequestDto {
 
     @Schema(description = "First name of the trainee", example = "John", requiredMode = Schema.RequiredMode.REQUIRED)
@@ -29,7 +33,7 @@ public class TraineeUpdateRequestDto {
     private String address;
 
     @Schema(description = "Indicates whether the trainee is active", example = "true", requiredMode = Schema.RequiredMode.REQUIRED)
-    @NotBlank
+    @NotNull
     private Boolean isActive;
 
 }
