@@ -1,0 +1,13 @@
+spring:
+  application:
+    name: gym-system
+
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://stg-db:5432/gymdb
+    username: gym_stg
+    password: stgpwd
+
+  jpa:
+    hibernate:
+      ddl-auto: validate

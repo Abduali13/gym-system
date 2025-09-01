@@ -10,6 +10,8 @@ import com.company.gym_system.repository.TrainingRepository;
 import com.company.gym_system.repository.TrainingTypeRepository;
 import com.company.gym_system.security.AuthGuard;
 import com.company.gym_system.service.TrainingService;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Timer;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,11 +34,13 @@ public class TrainingServiceImpl implements TrainingService {
     private final TrainingRepository trainingRepository;
     private final TrainingTypeRepository trainingTypeRepository;
     private final AuthGuard authGuard;
+    private final MeterRegistry meterRegistry;
 
     @Override
     public void create(Training training) {
         log.info("Creating training: {}", training);
         trainingRepository.save(training);
+        meterRegistry.counter("trainings_created_total").increment();
         log.info("Training created successfully with id: {}", training.getTrainingId());
     }
 
@@ -57,32 +61,35 @@ public class TrainingServiceImpl implements TrainingService {
     public Training addTraining(
             String username, String password,
             String traineeUsername, String trainerUsername,
-            LocalDate date, int duration, String type) {
+            LocalDate date, int duration, String type) throws AccessDeniedException {
 
+        authGuard.checkTrainee(username, password);
+
+        Timer.Sample sample = Timer.start();
         try {
-            authGuard.checkTrainee(username, password);
-        } catch (AccessDeniedException e) {
-            log.error("Access denied for user {}: {}", username, e.getMessage());
-            e.printStackTrace();
+            Trainer trainer = trainerRepository.findByUser_Username(trainerUsername)
+                    .orElseThrow(() -> new EntityNotFoundException("Trainer not found: " + trainerUsername));
+            Trainee trainee = traineeRepository.findByUser_Username(traineeUsername)
+                    .orElseThrow(() -> new EntityNotFoundException("Trainee not found: " + traineeUsername));
+            TrainingType trainingType = trainingTypeRepository.findByTrainingTypeName(type)
+                    .orElseThrow(() -> new EntityNotFoundException("Training type not found: " + type));
+
+            Training training = new Training();
+            training.setTrainer(trainer);
+            training.setTrainee(trainee);
+            training.setTrainingDate(date);
+            training.setTrainingDuration(duration);
+            training.setTrainingType(trainingType);
+
+            Training saved = trainingRepository.save(training);
+            meterRegistry.counter("trainings_added_total").increment();
+            log.info("Added training {} for trainee {} with trainer {}", saved.getTrainingId(), trainee.getUser().getUsername(), trainer.getUser().getUsername());
+            return saved;
+        } finally {
+            sample.stop(Timer.builder("training_add_duration_seconds")
+                    .description("Time taken to add a training")
+                    .register(meterRegistry));
         }
-
-        Trainer trainer = trainerRepository.findByUser_Username(trainerUsername)
-                .orElseThrow(() -> new EntityNotFoundException("Trainer not found: " + trainerUsername));
-        Trainee trainee = traineeRepository.findByUser_Username(traineeUsername)
-                .orElseThrow(() -> new EntityNotFoundException("Trainee not found: " + traineeUsername));
-        TrainingType trainingType = trainingTypeRepository.findByTrainingTypeName(type)
-                .orElseThrow(() -> new EntityNotFoundException("Training type not found: " + type));
-
-        Training training = new Training();
-        training.setTrainer(trainer);
-        training.setTrainee(trainee);
-        training.setTrainingDate(date);
-        training.setTrainingDuration(duration);
-        training.setTrainingType(trainingType);
-
-        Training saved = trainingRepository.save(training);
-        log.info("Added training {} for trainee {} with trainer {}", saved.getTrainingId(), trainee.getUser().getUsername(), trainer.getUser().getUsername());
-        return saved;
     }
 
     @Override
