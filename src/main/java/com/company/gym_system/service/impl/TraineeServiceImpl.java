@@ -76,7 +76,7 @@ public class TraineeServiceImpl implements TraineeService {
     }
 
     @Override
-    public TraineeUpdateResponseDto update(TraineeUpdateRequestDto trainee) {
+    public TraineeUpdateResponseDto updateTrainee(TraineeUpdateRequestDto trainee) {
 
         try {
             authGuard.checkTrainee(trainee.getUsername(), trainee.getPassword());
@@ -93,7 +93,7 @@ public class TraineeServiceImpl implements TraineeService {
     }
 
     @Override
-    public void changePassword(String username, String oldPassword, String newPassword) {
+    public void changeTraineePassword(String username, String oldPassword, String newPassword) {
         try {
             authGuard.checkTrainee(username, oldPassword);
             Trainee t = traineeRepository.findByUser_Username(username).get();
@@ -107,7 +107,7 @@ public class TraineeServiceImpl implements TraineeService {
     }
 
     @Override
-    public void activate(String username, String password, boolean active) {
+    public void activateTrainee(String username, String password, boolean active) {
         try {
             authGuard.checkTrainee(username, password);
             Trainee t = traineeRepository.findByUser_Username(username).get();
@@ -124,7 +124,7 @@ public class TraineeServiceImpl implements TraineeService {
     }
 
     @Override
-    public void delete(String username, String password) {
+    public void deleteTrainee(String username, String password) {
         try {
             authGuard.checkTrainee(username, password);
             Trainee t = traineeRepository.findByUser_Username(username).get();
@@ -138,7 +138,7 @@ public class TraineeServiceImpl implements TraineeService {
 
     @Override
     @Transactional(readOnly = true)
-    public Trainee findByUsername(String username) {
+    public Trainee getTraineeByUsername(String username) {
 //        try {
 //            authGuard.checkTrainee(username, password);
 //        } catch (AccessDeniedException e) {
@@ -149,7 +149,7 @@ public class TraineeServiceImpl implements TraineeService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<Training> getTrainings(
+    public List<Training> getTraineeTrainings(
             String username, String password, LocalDate from, LocalDate to,
             String trainerName, String trainingType) {
         try {
@@ -184,7 +184,7 @@ public class TraineeServiceImpl implements TraineeService {
     }
 
     @Override
-    public List<TrainerListResponseDto> updateTrainers(String username, String password, Set<String> trainerUsernames) {
+    public List<TrainerListResponseDto> updateTraineeTrainers(String username, String password, Set<String> trainerUsernames) {
         try {
             authGuard.checkTrainee(username, password);
         } catch (AccessDeniedException e) {
@@ -202,7 +202,7 @@ public class TraineeServiceImpl implements TraineeService {
     }
 
     @Override
-    public List<Trainee> listAll() {
+    public List<Trainee> listAllTrainees() {
         return traineeRepository.findAll().stream()
                 .filter(t -> t.getUser().getIsActive())
                 .collect(Collectors.toList());

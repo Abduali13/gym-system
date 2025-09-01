@@ -12,7 +12,7 @@ import java.util.List;
 public interface TrainingService {
     void create(Training training);
     Training get(Long id);
-    List<Training> listAll();
+    List<Training> listAllTrainings();
     Training addTraining(String username, String password,
                          String traineeUsername, String trainerUsername,
                          LocalDate date, int duration, String type) throws AccessDeniedException;

@@ -49,7 +49,7 @@ public class TrainingServiceImpl implements TrainingService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<Training> listAll() {
+    public List<Training> listAllTrainings() {
         return trainingRepository.findAll();
     }
 

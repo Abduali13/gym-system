@@ -73,7 +73,7 @@ public class TrainerServiceImpl implements TrainerService {
     }
 
     @Override
-    public TrainerUpdateResponseDto update(TrainerUpdateRequestDto updates) {
+    public TrainerUpdateResponseDto updateTrainer(TrainerUpdateRequestDto updates) {
         try {
             authGuard.checkTrainer(updates.getUsername(), updates.getPassword());
             Trainer trainer = trainerRepository.findByUser_Username(updates.getUsername())
@@ -91,7 +91,7 @@ public class TrainerServiceImpl implements TrainerService {
     }
 
     @Override
-    public void changePassword(String username, String oldPassword, String newPassword) {
+    public void changeTrainerPassword(String username, String oldPassword, String newPassword) {
         try {
             authGuard.checkTrainer(username, oldPassword);
             Trainer trainer = trainerRepository.findByUser_Username(username)
@@ -106,7 +106,7 @@ public class TrainerServiceImpl implements TrainerService {
     }
 
     @Override
-    public void activate(String username, String password, boolean active) {
+    public void activateTrainer(String username, String password, boolean active) {
         try {
             authGuard.checkTrainer(username, password);
             Trainer trainer = trainerRepository.findByUser_Username(username)
@@ -124,7 +124,7 @@ public class TrainerServiceImpl implements TrainerService {
     }
 
     @Override
-    public void delete(String username, String password) {
+    public void deleteTrainer(String username, String password) {
         try {
             authGuard.checkTrainer(username, password);
             Trainer trainer = trainerRepository.findByUser_Username(username)
@@ -139,7 +139,7 @@ public class TrainerServiceImpl implements TrainerService {
 
     @Override
     @Transactional(readOnly = true)
-    public TrainerGetResponseDto findByUsername(String username, String password) {
+    public TrainerGetResponseDto getTrainerByUsername(String username, String password) {
         try {
             authGuard.checkTrainer(username, password);
         } catch (Exception e) {
@@ -152,8 +152,8 @@ public class TrainerServiceImpl implements TrainerService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<TrainingGetWithTrainerDto> getTrainings(String username, String password,
-                                                        LocalDate from, LocalDate to, String traineeName) {
+    public List<TrainingGetWithTrainerDto> getTrainerTrainings(String username, String password,
+                                                               LocalDate from, LocalDate to, String traineeName) {
         try {
             authGuard.checkTrainer(username, password);
         } catch (Exception e) {
@@ -187,7 +187,7 @@ public class TrainerServiceImpl implements TrainerService {
     }
 
     @Override
-    public void updateTrainees(String username, String password, Set<String> traineeUsernames) {
+    public void updateTrainerTrainees(String username, String password, Set<String> traineeUsernames) {
         try {
             authGuard.checkTrainer(username, password);
         } catch (Exception e) {
@@ -208,7 +208,7 @@ public class TrainerServiceImpl implements TrainerService {
     }
 
     @Override
-    public List<Trainer> listAll() {
+    public List<Trainer> listAllTrainers() {
         return this.trainerRepository.findAll().stream().filter(t -> t.getUser().getIsActive())
                 .collect(Collectors.toList());
     }

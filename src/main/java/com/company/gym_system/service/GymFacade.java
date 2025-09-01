@@ -1,13 +1,10 @@
-package com.company.gym_system.controller;
+package com.company.gym_system.service;
 
 import com.company.gym_system.dto.*;
 import com.company.gym_system.entity.Trainee;
 import com.company.gym_system.entity.Trainer;
 import com.company.gym_system.entity.Training;
 import com.company.gym_system.entity.TrainingType;
-import com.company.gym_system.service.TraineeService;
-import com.company.gym_system.service.TrainerService;
-import com.company.gym_system.service.TrainingService;
 import com.company.gym_system.repository.TrainingTypeRepository;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -48,40 +45,40 @@ public class GymFacade {
     }
 
     public List<Trainee> listAllTrainees() {
-        return traineeService.listAll();
+        return traineeService.listAllTrainees();
     }
 
     public List<Trainer> listAllTrainers() {
-        return trainerService.listAll();
+        return trainerService.listAllTrainers();
     }
 
     public List<Training> listAllTrainings() {
-        return trainingService.listAll();
+        return trainingService.listAllTrainings();
     }
 
     public TraineeUpdateResponseDto updateTrainee(TraineeUpdateRequestDto updates) throws AccessDeniedException {
-        return traineeService.update(updates);
+        return traineeService.updateTrainee(updates);
     }
 
     public void changeTraineePassword(String username, String oldPwd, String newPwd) {
-        traineeService.changePassword(username, oldPwd, newPwd);
+        traineeService.changeTraineePassword(username, oldPwd, newPwd);
     }
 
     public void activateTrainee(String username, String password, boolean active) {
-        traineeService.activate(username, password, active);
+        traineeService.activateTrainee(username, password, active);
     }
 
     public void deleteTrainee(String username, String password) {
-        traineeService.delete(username, password);
+        traineeService.deleteTrainee(username, password);
     }
 
     public Trainee getTraineeByUsername(String username) {
-        return traineeService.findByUsername(username);
+        return traineeService.getTraineeByUsername(username);
     }
 
     public List<Training> getTraineeTrainings(String username, String password,
                                               LocalDate from, LocalDate to, String trainerName, String trainingType) {
-        return traineeService.getTrainings(username, password, from, to, trainerName, trainingType);
+        return traineeService.getTraineeTrainings(username, password, from, to, trainerName, trainingType);
     }
 
     public List<TrainerShortProfileDto> findAvailableTrainers(String username, String password) {
@@ -89,33 +86,33 @@ public class GymFacade {
     }
 
     public List<TrainerListResponseDto> updateTraineeTrainers(String username, String password, Set<String> trainerUsernames) {
-        return traineeService.updateTrainers(username, password, trainerUsernames);
+        return traineeService.updateTraineeTrainers(username, password, trainerUsernames);
     }
 
 
     public TrainerUpdateResponseDto updateTrainer(TrainerUpdateRequestDto updates) {
-        return trainerService.update(updates);
+        return trainerService.updateTrainer(updates);
     }
 
     public void changeTrainerPassword(String username, String oldPwd, String newPwd) {
-        trainerService.changePassword(username, oldPwd, newPwd);
+        trainerService.changeTrainerPassword(username, oldPwd, newPwd);
     }
 
     public void activateTrainer(String username, String password, boolean active) {
-        trainerService.activate(username, password, active);
+        trainerService.activateTrainer(username, password, active);
     }
 
     public void deleteTrainer(String username, String password) {
-        trainerService.delete(username, password);
+        trainerService.deleteTrainer(username, password);
     }
 
     public TrainerGetResponseDto getTrainerByUsername(String username, String password) {
-        return trainerService.findByUsername(username, password);
+        return trainerService.getTrainerByUsername(username, password);
     }
 
     public List<TrainingGetWithTrainerDto> getTrainerTrainings(String username, String password,
                                               LocalDate from, LocalDate to, String traineeName) {
-        return trainerService.getTrainings(username, password, from, to, traineeName);
+        return trainerService.getTrainerTrainings(username, password, from, to, traineeName);
     }
 
     public List<Trainee> findUnassignedTrainees(String username, String password) {
@@ -123,7 +120,7 @@ public class GymFacade {
     }
 
     public void updateTrainerTrainees(String username, String password, Set<String> traineeUsernames) {
-        trainerService.updateTrainees(username, password, traineeUsernames);
+        trainerService.updateTrainerTrainees(username, password, traineeUsernames);
     }
 
     public List<TrainingType> getTrainingTypes() {

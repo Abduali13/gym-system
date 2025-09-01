@@ -1,7 +1,11 @@
 package com.company.gym_system;
 
-import com.company.gym_system.controller.GymFacade;
-import com.company.gym_system.controller.GymFacadeController;
+import com.company.gym_system.service.GymFacade;
+import com.company.gym_system.controller.AuthController;
+import com.company.gym_system.controller.TraineeController;
+import com.company.gym_system.controller.TrainerController;
+import com.company.gym_system.controller.TrainingController;
+import com.company.gym_system.controller.TrainingTypeController;
 import com.company.gym_system.dto.*;
 import com.company.gym_system.entity.*;
 import com.company.gym_system.security.AuthGuard;
@@ -26,7 +30,7 @@ import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@WebMvcTest(GymFacadeController.class)
+@WebMvcTest({TraineeController.class, TrainerController.class, TrainingController.class, TrainingTypeController.class, AuthController.class})
 class GymFacadeControllerTest {
 
     @Autowired
@@ -54,7 +58,7 @@ class GymFacadeControllerTest {
         given(txLogger.startTransaction(any(), any())).willReturn("txid");
         given(gymFacade.registerTrainee(any())).willReturn(resp);
 
-        mockMvc.perform(post("/api/gym/trainee/register")
+        mockMvc.perform(post("/api/v1/trainees/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(req)))
                 .andExpect(status().isOk())
@@ -65,7 +69,7 @@ class GymFacadeControllerTest {
     void listTrainees_shouldReturnList() throws Exception {
         given(gymFacade.listAllTrainees()).willReturn(Collections.singletonList(new Trainee()));
 
-        mockMvc.perform(get("/api/gym/list-all-trainees"))
+        mockMvc.perform(get("/api/v1/trainees/list-all-trainees"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray());
     }
@@ -78,7 +82,7 @@ class GymFacadeControllerTest {
         TraineeUpdateResponseDto resp = new TraineeUpdateResponseDto();
         given(gymFacade.updateTrainee(any())).willReturn(resp);
 
-        mockMvc.perform(put("/api/gym/update-trainee")
+        mockMvc.perform(put("/api/v1//trainees/update-trainee")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(updates)))
                 .andExpect(status().isOk());
@@ -88,7 +92,7 @@ class GymFacadeControllerTest {
     void deleteTrainee_shouldReturnOk() throws Exception {
         Mockito.doNothing().when(gymFacade).deleteTrainee(anyString(), anyString());
 
-        mockMvc.perform(delete("/api/gym/delete-trainee")
+        mockMvc.perform(delete("/api/v1/trainees/delete-trainee")
                         .param("username", "john")
                         .param("password", "pass"))
                 .andExpect(status().isOk());
@@ -98,7 +102,7 @@ class GymFacadeControllerTest {
     void getTraineeByUsername_shouldReturnTrainee() throws Exception {
         given(gymFacade.getTraineeByUsername(anyString())).willReturn(new Trainee());
 
-        mockMvc.perform(get("/api/gym/trainee").param("username", "john"))
+        mockMvc.perform(get("/api/v1/trainees/trainee").param("username", "john"))
                 .andExpect(status().isOk());
     }
 
@@ -107,7 +111,7 @@ class GymFacadeControllerTest {
         given(gymFacade.getTraineeTrainings(anyString(), anyString(), any(), any(), any(), any()))
                 .willReturn(Collections.singletonList(new Training()));
 
-        mockMvc.perform(get("/api/gym/trainee-trainings")
+        mockMvc.perform(get("/api/v1/trainees/trainee-trainings")
                         .param("username", "john")
                         .param("password", "pass"))
                 .andExpect(status().isOk());
@@ -118,7 +122,7 @@ class GymFacadeControllerTest {
         given(gymFacade.findAvailableTrainers(anyString(), anyString()))
                 .willReturn(Collections.singletonList(new TrainerShortProfileDto()));
 
-        mockMvc.perform(get("/api/gym/trainers/active-unassigned-trainers")
+        mockMvc.perform(get("/api/v1/trainers/active-unassigned-trainers")
                         .param("username", "john").param("password", "pass"))
                 .andExpect(status().isOk());
     }
@@ -129,7 +133,7 @@ class GymFacadeControllerTest {
         given(gymFacade.updateTraineeTrainers(anyString(), anyString(), anySet()))
                 .willReturn(Collections.singletonList(new TrainerListResponseDto()));
 
-        mockMvc.perform(put("/api/gym/update-trainee-trainers")
+        mockMvc.perform(put("/api/v1/trainees/update-trainee-trainers")
                         .param("username", "john")
                         .param("password", "pass")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -144,7 +148,7 @@ class GymFacadeControllerTest {
         given(txLogger.startTransaction(any(), any())).willReturn("txid");
         given(gymFacade.registerTrainer(any())).willReturn(resp);
 
-        mockMvc.perform(post("/api/gym/register-trainer")
+        mockMvc.perform(post("/api/v1/trainers/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(req)))
                 .andExpect(status().isOk())
@@ -155,7 +159,7 @@ class GymFacadeControllerTest {
     void listTrainers_shouldReturnList() throws Exception {
         given(gymFacade.listAllTrainers()).willReturn(Collections.singletonList(new Trainer()));
 
-        mockMvc.perform(get("/api/gym/list-all-trainers"))
+        mockMvc.perform(get("/api/v1/trainers/list-all-trainers"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray());
     }
@@ -167,7 +171,7 @@ class GymFacadeControllerTest {
         TrainerUpdateResponseDto resp = TrainerUpdateResponseDto.builder().username("trainer1").build();
         given(gymFacade.updateTrainer(any())).willReturn(resp);
 
-        mockMvc.perform(put("/api/gym/update-trainer")
+        mockMvc.perform(put("/api/v1/trainers/update-trainer")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(updates)))
                 .andExpect(status().isOk());
@@ -177,10 +181,10 @@ class GymFacadeControllerTest {
     void changeTraineePassword_shouldReturnOk() throws Exception {
         Mockito.doNothing().when(gymFacade).changeTraineePassword(anyString(), anyString(), anyString());
 
-        mockMvc.perform(put("/api/gym/change-trainee-password")
+        mockMvc.perform(put("/api/v1/trainees/change-trainee-password")
                         .param("username", "john")
-                        .param("oldPwd", "old")
-                        .param("newPwd", "new"))
+                        .param("oldPassword", "old")
+                        .param("newPassword", "new"))
                 .andExpect(status().isOk());
     }
 
@@ -188,7 +192,7 @@ class GymFacadeControllerTest {
     void activateTrainee_shouldReturnOk() throws Exception {
         Mockito.doNothing().when(gymFacade).activateTrainee(anyString(), anyString(), anyBoolean());
 
-        mockMvc.perform(put("/api/gym/activate-trainee")
+        mockMvc.perform(put("/api/v1//trainees/activate-trainee")
                         .param("username", "john")
                         .param("password", "pass")
                         .param("active", "true"))
@@ -199,7 +203,7 @@ class GymFacadeControllerTest {
     void changeTrainerPassword_shouldReturnOk() throws Exception {
         Mockito.doNothing().when(gymFacade).changeTrainerPassword(anyString(), anyString(), anyString());
 
-        mockMvc.perform(put("/api/gym/change-trainer-password")
+        mockMvc.perform(put("/api/v1/trainers/change-trainer-password")
                         .param("username", "trainer1")
                         .param("oldPassword", "old")
                         .param("newPassword", "new"))
@@ -210,7 +214,7 @@ class GymFacadeControllerTest {
     void activateTrainer_shouldReturnOk() throws Exception {
         Mockito.doNothing().when(gymFacade).activateTrainer(anyString(), anyString(), anyBoolean());
 
-        mockMvc.perform(put("/api/gym/activate-trainer")
+        mockMvc.perform(put("/api/v1/trainers/activate-trainer")
                         .param("username", "trainer1")
                         .param("password", "pass")
                         .param("active", "true"))
@@ -221,7 +225,7 @@ class GymFacadeControllerTest {
     void deleteTrainer_shouldReturnOk() throws Exception {
         Mockito.doNothing().when(gymFacade).deleteTrainer(anyString(), anyString());
 
-        mockMvc.perform(delete("/api/gym/delete-trainer")
+        mockMvc.perform(delete("/api/v1/trainers/delete-trainer")
                         .param("username", "trainer1")
                         .param("password", "pass"))
                 .andExpect(status().isOk());
@@ -232,7 +236,7 @@ class GymFacadeControllerTest {
         TrainerGetResponseDto resp = TrainerGetResponseDto.builder().firstName("trainer1").build();
         given(gymFacade.getTrainerByUsername(anyString(), anyString())).willReturn(resp);
 
-        mockMvc.perform(get("/api/gym/trainer")
+        mockMvc.perform(get("/api/v1/trainers/trainer")
                         .param("username", "trainer1")
                         .param("password", "pass"))
                 .andExpect(status().isOk());
@@ -243,7 +247,7 @@ class GymFacadeControllerTest {
         given(gymFacade.getTrainerTrainings(anyString(), anyString(), any(), any(), any()))
                 .willReturn(Collections.singletonList(new TrainingGetWithTrainerDto()));
 
-        mockMvc.perform(get("/api/gym/trainer-trainings")
+        mockMvc.perform(get("/api/v1/trainers/trainer-trainings")
                         .param("username", "trainer1")
                         .param("password", "pass"))
                 .andExpect(status().isOk());
@@ -254,7 +258,7 @@ class GymFacadeControllerTest {
         given(gymFacade.findUnassignedTrainees(anyString(), anyString()))
                 .willReturn(Collections.singletonList(new Trainee()));
 
-        mockMvc.perform(get("/api/gym/unassigned-trainees")
+        mockMvc.perform(get("/api/v1/trainees/unassigned-trainees")
                         .param("username", "trainer1")
                         .param("password", "pass"))
                 .andExpect(status().isOk());
@@ -265,7 +269,7 @@ class GymFacadeControllerTest {
         Set<String> traineeUsernames = new HashSet<>(Set.of("trainee1"));
         Mockito.doNothing().when(gymFacade).updateTrainerTrainees(anyString(), anyString(), anySet());
 
-        mockMvc.perform(put("/api/gym/update-trainer-trainees")
+        mockMvc.perform(put("/api/v1/trainers/update-trainer-trainees")
                         .param("username", "trainer1")
                         .param("password", "pass")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -278,7 +282,7 @@ class GymFacadeControllerTest {
         Training dummyTraining = new Training();
         Mockito.doNothing().when(gymFacade).addTraining(any());
 
-        mockMvc.perform(post("/api/gym/add-training")
+        mockMvc.perform(post("/api/v1/trainings/add-training")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(dummyTraining)))
                 .andExpect(status().isOk());
@@ -288,7 +292,7 @@ class GymFacadeControllerTest {
     void listTraining_shouldReturnList() throws Exception {
         given(gymFacade.listAllTrainings()).willReturn(Collections.singletonList(new Training()));
 
-        mockMvc.perform(get("/api/gym/list-all-training"))
+        mockMvc.perform(get("/api/v1/trainings/list-all-training"))
                 .andExpect(status().isOk());
     }
 
@@ -297,7 +301,7 @@ class GymFacadeControllerTest {
         Mockito.doNothing().when(authGuard).checkAny(anyString(), anyString());
         given(txLogger.startTransaction(any(), any())).willReturn("txid");
 
-        mockMvc.perform(get("/api/gym/login")
+        mockMvc.perform(get("/api/v1/auth/login")
                         .param("username", "user")
                         .param("password", "pass"))
                 .andExpect(status().isOk());
@@ -309,7 +313,7 @@ class GymFacadeControllerTest {
         Mockito.doThrow(new java.nio.file.AccessDeniedException("fail"))
                 .when(authGuard).checkAny(anyString(), anyString());
 
-        mockMvc.perform(get("/api/gym/login")
+        mockMvc.perform(get("/api/v1/auth/login")
                         .param("username", "user")
                         .param("password", "pass"))
                 .andExpect(status().isForbidden());
@@ -318,9 +322,9 @@ class GymFacadeControllerTest {
     @Test
     void resetPassword_shouldReturnOkIfTrainee() throws Exception {
         given(txLogger.startTransaction(any(), any())).willReturn("txid");
-        given(traineeService.findByUsername(anyString())).willReturn(new Trainee());
+        given(traineeService.getTraineeByUsername(anyString())).willReturn(new Trainee());
 
-        mockMvc.perform(put("/api/gym/reset-password")
+        mockMvc.perform(put("/api/v1/auth/reset-password")
                         .param("username", "john")
                         .param("newPassword", "pass"))
                 .andExpect(status().isOk());
@@ -329,10 +333,10 @@ class GymFacadeControllerTest {
     @Test
     void resetPassword_shouldReturnOkIfTrainer() throws Exception {
         given(txLogger.startTransaction(any(), any())).willReturn("txid");
-        given(traineeService.findByUsername(anyString())).willReturn(null);
-        given(trainerService.findByUsername(anyString(), anyString())).willReturn(new TrainerGetResponseDto());
+        given(traineeService.getTraineeByUsername(anyString())).willReturn(null);
+        given(trainerService.getTrainerByUsername(anyString(), anyString())).willReturn(new TrainerGetResponseDto());
 
-        mockMvc.perform(put("/api/gym/reset-password")
+        mockMvc.perform(put("/api/v1/auth/reset-password")
                         .param("username", "trainer1")
                         .param("newPassword", "trainerpass"))
                 .andExpect(status().isOk());
@@ -341,10 +345,10 @@ class GymFacadeControllerTest {
     @Test
     void resetPassword_shouldReturnNotFoundIfNotFound() throws Exception {
         given(txLogger.startTransaction(any(), any())).willReturn("txid");
-        given(traineeService.findByUsername(anyString())).willReturn(null);
-        given(trainerService.findByUsername(anyString(), anyString())).willReturn(null);
+        given(traineeService.getTraineeByUsername(anyString())).willReturn(null);
+        given(trainerService.getTrainerByUsername(anyString(), anyString())).willReturn(null);
 
-        mockMvc.perform(put("/api/gym/reset-password")
+        mockMvc.perform(put("/api/v1/auth/reset-password")
                         .param("username", "missing")
                         .param("newPassword", "none"))
                 .andExpect(status().isNotFound());
@@ -354,7 +358,7 @@ class GymFacadeControllerTest {
     void getTrainingTypes_shouldReturnList() throws Exception {
         given(gymFacade.getTrainingTypes()).willReturn(Collections.emptyList());
 
-        mockMvc.perform(get("/api/gym/training-types"))
+        mockMvc.perform(get("/api/v1/training-types/list-all"))
                 .andExpect(status().isOk());
     }
 
