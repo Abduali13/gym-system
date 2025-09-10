@@ -1,5 +1,6 @@
 package com.company.gym_system;
 
+import com.company.gym_system.config.SecurityConfig;
 import com.company.gym_system.service.GymFacade;
 import com.company.gym_system.controller.AuthController;
 import com.company.gym_system.controller.TraineeController;
@@ -16,9 +17,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -31,6 +35,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest({TraineeController.class, TrainerController.class, TrainingController.class, TrainingTypeController.class, AuthController.class})
+@TestPropertySource(properties = "spring.security.jwt.secret=testSecretKeyForJWT")
+@Import(SecurityConfig.class)
+@AutoConfigureMockMvc(addFilters = false)
 class GymFacadeControllerTest {
 
     @Autowired

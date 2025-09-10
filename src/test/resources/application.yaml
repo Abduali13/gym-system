@@ -3,3 +3,6 @@ spring:
     exclude: org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration
   security:
     enabled: false
+    jwt:
+        secret: testSecretKeyForJWT
+        expiration-ms: 60000 # 1 minute
