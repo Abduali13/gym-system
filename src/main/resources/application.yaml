@@ -11,6 +11,17 @@ spring:
   jpa:
     hibernate:
       ddl-auto: create
+    show-sql: true
+
+  security:
+    jwt:
+      secret: randomSecretKeyForJWT
+      expiration-ms: 3600000 # 1 hour
+    bruteForce:
+      maxAttempts: 3
+      blockDurationMs: 300000 # 5 minutes
+  cors:
+    allowed-origins: "http://localhost:3000"
 
 management:
   endpoints:

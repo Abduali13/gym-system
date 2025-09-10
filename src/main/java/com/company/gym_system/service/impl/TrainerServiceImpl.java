@@ -13,11 +13,13 @@ import com.company.gym_system.service.TrainerService;
 import com.company.gym_system.service.mapper.TrainerMapper;
 import com.company.gym_system.service.mapper.TrainingMapper;
 import com.company.gym_system.service.specs.TrainingSpecs;
+import com.company.gym_system.util.JwtUtil;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -42,6 +44,8 @@ public class TrainerServiceImpl implements TrainerService {
     private final AuthGuard authGuard;
     private final TrainerMapper trainerMapper;
     private final TrainingMapper trainingMapper;
+    private final PasswordEncoder passwordEncoder;
+    private final JwtUtil jwtUtil;
 
 
     @Override
@@ -57,13 +61,19 @@ public class TrainerServiceImpl implements TrainerService {
             String baseUsername = firstName + "." + lastName;
             boolean exists = trainerRepository.existsByUser_Username(baseUsername)
                     || traineeRepository.existsByUser_Username(baseUsername);
-            user.setUsername(generateUsername(firstName, lastName, exists));
-            user.setPassword(generateRandomPassword());
+            String username = generateUsername(firstName, lastName, exists);
+            String plainPassword = generateRandomPassword();
+            user.setUsername(username);
+            user.setPassword(passwordEncoder.encode(plainPassword));
             user.setIsActive(true);
             trainer.setUser(user);
             trainer.setSpecialization(specialty);
 
-            TrainerRegistrationResponseDto dto = this.trainerMapper.toDto(trainerRepository.save(trainer));
+            trainerRepository.save(trainer);
+            TrainerRegistrationResponseDto dto = new TrainerRegistrationResponseDto();
+            dto.setUsername(username);
+            dto.setPassword(plainPassword);
+            dto.setToken(jwtUtil.generateToken(username));
             log.info("Trainer has been created successfully");
             return dto;
         } catch (Exception e) {
@@ -97,7 +107,7 @@ public class TrainerServiceImpl implements TrainerService {
             Trainer trainer = trainerRepository.findByUser_Username(username)
                     .orElseThrow(() -> new EntityNotFoundException(username));
 
-            trainer.getUser().setPassword(newPassword);
+            trainer.getUser().setPassword(passwordEncoder.encode(newPassword));
             trainerRepository.save(trainer);
             log.info("Trainer {} changed password", username);
         } catch (Exception e) {

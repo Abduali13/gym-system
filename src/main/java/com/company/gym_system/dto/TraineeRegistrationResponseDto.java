@@ -9,5 +9,6 @@ import lombok.*;
 public class TraineeRegistrationResponseDto {
 
     private String username;
-    private String password;
+    private String password; // plain password for initial display only
+    private String token;    // JWT for immediate authorization
 }

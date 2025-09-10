@@ -7,6 +7,7 @@ import com.company.gym_system.repository.TrainerRepository;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.nio.file.AccessDeniedException;
@@ -17,19 +18,21 @@ public class AuthGuard {
     private final TraineeRepository teRepo;
     private final TrainerRepository trRepo;
     private final MeterRegistry meterRegistry;
+    private final PasswordEncoder passwordEncoder;
 
     @Autowired
-    public AuthGuard(TraineeRepository teRepo, TrainerRepository trRepo, MeterRegistry meterRegistry) {
+    public AuthGuard(TraineeRepository teRepo, TrainerRepository trRepo, MeterRegistry meterRegistry, PasswordEncoder passwordEncoder) {
         this.teRepo = teRepo;
         this.trRepo = trRepo;
         this.meterRegistry = meterRegistry;
+        this.passwordEncoder = passwordEncoder;
     }
 
     public void checkTrainee(String username, String password) throws AccessDeniedException {
         try {
             Trainee t = teRepo.findByUser_Username(username)
                     .orElseThrow(() -> new AccessDeniedException("Invalid trainee"));
-            if (!t.getUser().getPassword().equals(password) || !t.getUser().getIsActive()) {
+            if (!passwordEncoder.matches(password, t.getUser().getPassword()) || !t.getUser().getIsActive()) {
                 throw new AccessDeniedException("Bad credentials or inactive");
             }
             meterRegistry.counter("auth_attempts_total", "result", "success", "type", "trainee").increment();
@@ -45,7 +48,7 @@ public class AuthGuard {
         try {
             Trainer t = trRepo.findByUser_Username(username)
                     .orElseThrow(() -> new AccessDeniedException("Invalid trainer"));
-            if (!t.getUser().getPassword().equals(password) || !t.getUser().getIsActive()) {
+            if (!passwordEncoder.matches(password, t.getUser().getPassword()) || !t.getUser().getIsActive()) {
                 throw new AccessDeniedException("Bad credentials or inactive");
             }
             meterRegistry.counter("auth_attempts_total", "result", "success", "type", "trainer").increment();
@@ -63,7 +66,7 @@ public class AuthGuard {
 
         if (traineeOpt.isPresent()) {
             Trainee t = traineeOpt.get();
-            if (Boolean.TRUE.equals(t.getUser().getIsActive()) && t.getUser().getPassword().equals(password)) {
+            if (Boolean.TRUE.equals(t.getUser().getIsActive()) && passwordEncoder.matches(password, t.getUser().getPassword())) {
                 meterRegistry.counter("auth_attempts_total", "result", "success", "type", "any").increment();
                 log.info("Authenticated as trainee {}", username);
                 return; // authenticated as trainee
@@ -71,7 +74,7 @@ public class AuthGuard {
         }
         if (trainerOpt.isPresent()) {
             Trainer t = trainerOpt.get();
-            if (Boolean.TRUE.equals(t.getUser().getIsActive()) && t.getUser().getPassword().equals(password)) {
+            if (Boolean.TRUE.equals(t.getUser().getIsActive()) && passwordEncoder.matches(password, t.getUser().getPassword())) {
                 meterRegistry.counter("auth_attempts_total", "result", "success", "type", "any").increment();
                 log.info("Authenticated as trainer {}", username);
                 return; // authenticated as trainer

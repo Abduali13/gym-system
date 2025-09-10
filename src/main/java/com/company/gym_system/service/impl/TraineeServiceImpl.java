@@ -1,6 +1,9 @@
 package com.company.gym_system.service.impl;
 
-import com.company.gym_system.dto.*;
+import com.company.gym_system.dto.TraineeRegistrationResponseDto;
+import com.company.gym_system.dto.TraineeUpdateRequestDto;
+import com.company.gym_system.dto.TraineeUpdateResponseDto;
+import com.company.gym_system.dto.TrainerListResponseDto;
 import com.company.gym_system.entity.Trainee;
 import com.company.gym_system.entity.Trainer;
 import com.company.gym_system.entity.Training;
@@ -12,11 +15,13 @@ import com.company.gym_system.security.AuthGuard;
 import com.company.gym_system.service.TraineeService;
 import com.company.gym_system.service.mapper.TraineeMapper;
 import com.company.gym_system.service.specs.TrainingSpecs;
+import com.company.gym_system.util.JwtUtil;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -40,7 +45,8 @@ public class TraineeServiceImpl implements TraineeService {
     private final TrainingRepository trainingRepository;
     private final AuthGuard authGuard;
     private final TraineeMapper traineeMapper;
-
+    private final PasswordEncoder passwordEncoder;
+    private final JwtUtil jwtUtil;
 
     @Override
     public TraineeRegistrationResponseDto create(String firstName, String lastName, LocalDate birthDate, String address) {
@@ -58,13 +64,19 @@ public class TraineeServiceImpl implements TraineeService {
             String baseUsername = firstName + "." + lastName;
             boolean exists = this.traineeRepository.existsByUser_Username(baseUsername)
                     || this.trainerRepository.existsByUser_Username(baseUsername);
-            user.setUsername(generateUsername(firstName, lastName, exists));
-            user.setPassword(generateRandomPassword());
+            String username = generateUsername(firstName, lastName, exists);
+            String plainPassword = generateRandomPassword();
+            user.setUsername(username);
+            user.setPassword(passwordEncoder.encode(plainPassword));
             user.setIsActive(true);
             t.setUser(user);
             t.setAddress(address);
             t.setBirthDate(birthDate);
-            TraineeRegistrationResponseDto dto = this.traineeMapper.toRegistrationDto(this.traineeRepository.save(t));
+            Trainee saved = this.traineeRepository.save(t);
+            TraineeRegistrationResponseDto dto = new TraineeRegistrationResponseDto();
+            dto.setUsername(username);
+            dto.setPassword(plainPassword);
+            dto.setToken(jwtUtil.generateToken(username));
             log.info("Trainee has been created successfully");
             return dto;
 
@@ -97,7 +109,7 @@ public class TraineeServiceImpl implements TraineeService {
         try {
             authGuard.checkTrainee(username, oldPassword);
             Trainee t = traineeRepository.findByUser_Username(username).get();
-            t.getUser().setPassword(newPassword);
+            t.getUser().setPassword(passwordEncoder.encode(newPassword));
             traineeRepository.save(t);
             log.info("Trainee {} changed password", username);
         } catch (Exception e) {
