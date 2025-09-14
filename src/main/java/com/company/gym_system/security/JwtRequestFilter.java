@@ -1,4 +1,4 @@
-package com.company.gym_system.config;
+package com.company.gym_system.security;
 
 import com.company.gym_system.service.CustomUserDetailsService;
 import com.company.gym_system.util.JwtUtil;
@@ -6,7 +6,6 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -20,9 +19,8 @@ import java.io.IOException;
 @Component
 @ConditionalOnProperty(name = "spring.security.enabled", havingValue = "true", matchIfMissing = true)
 public class JwtRequestFilter extends OncePerRequestFilter {
-    @Autowired
+
     private JwtUtil jwtUtil;
-    @Autowired
     private CustomUserDetailsService userDetailsService;
 
     @Override
