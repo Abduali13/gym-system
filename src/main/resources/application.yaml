@@ -22,6 +22,9 @@ spring:
       blockDurationMs: 300000 # 5 minutes
   cors:
     allowed-origins: "http://localhost:3000"
+  cloud:
+    discovery:
+      enabled: false
 
 management:
   endpoints:
@@ -34,3 +37,14 @@ management:
   metrics:
     tags:
       application: ${spring.application.name}
+
+# yaml
+eureka:
+  client:
+    enabled: false
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka
+    registerWithEureka: false
+    fetchRegistry: false
+  instance:
+    preferIpAddress: false

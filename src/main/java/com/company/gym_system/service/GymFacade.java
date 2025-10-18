@@ -44,6 +44,10 @@ public class GymFacade {
         trainingService.create(training);
     }
 
+    public void deleteTraining(Long id) {
+        trainingService.delete(id);
+    }
+
     public List<Trainee> listAllTrainees() {
         return traineeService.listAllTrainees();
     }

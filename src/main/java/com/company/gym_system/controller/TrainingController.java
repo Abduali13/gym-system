@@ -23,6 +23,12 @@ public class TrainingController {
         return ResponseEntity.ok().build();
     }
 
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteTraining(@PathVariable Long id) {
+        gymFacade.deleteTraining(id);
+        return ResponseEntity.ok().build();
+    }
+
     @GetMapping("/list-all-training")
     public ResponseEntity<List<Training>> listTraining() {
         return ResponseEntity.ok(gymFacade.listAllTrainings());

@@ -35,13 +35,20 @@ public class TrainingServiceImpl implements TrainingService {
     private final TrainingTypeRepository trainingTypeRepository;
     private final AuthGuard authGuard;
     private final MeterRegistry meterRegistry;
+    private final com.company.gym_system.integration.TrainerWorkloadClient workloadClient;
 
     @Override
     public void create(Training training) {
-        log.info("Creating training: {}", training);
+        String txId = java.util.UUID.randomUUID().toString();
+        log.info("[{}] Creating training: {}", txId, training);
         trainingRepository.save(training);
         meterRegistry.counter("trainings_created_total").increment();
-        log.info("Training created successfully with id: {}", training.getTrainingId());
+        log.info("[{}] Training created successfully with id: {}", txId, training.getTrainingId());
+        try {
+            workloadClient.sendUpdate(training, com.company.workload.model.WorkloadUpdateRequest.ActionType.ADD, txId);
+        } catch (Exception e) {
+            log.error("[{}] Failed to notify workload service for ADD: {}", txId, e.getMessage());
+        }
     }
 
     @Override
@@ -95,5 +102,20 @@ public class TrainingServiceImpl implements TrainingService {
     @Override
     public List<TrainingType> getTrainingTypes() {
         return trainingTypeRepository.findAll();
+    }
+
+    @Override
+    public void delete(Long id) {
+        String txId = java.util.UUID.randomUUID().toString();
+        Training training = trainingRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Training not found with id " + id));
+        trainingRepository.deleteById(id);
+        meterRegistry.counter("trainings_deleted_total").increment();
+        log.info("[{}] Training deleted id: {}", txId, id);
+        try {
+            workloadClient.sendUpdate(training, com.company.workload.model.WorkloadUpdateRequest.ActionType.DELETE, txId);
+        } catch (Exception e) {
+            log.error("[{}] Failed to notify workload service for DELETE: {}", txId, e.getMessage());
+        }
     }
 }

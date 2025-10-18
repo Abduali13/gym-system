@@ -89,7 +89,7 @@ class GymFacadeControllerTest {
         TraineeUpdateResponseDto resp = new TraineeUpdateResponseDto();
         given(gymFacade.updateTrainee(any())).willReturn(resp);
 
-        mockMvc.perform(put("/api/v1//trainees/update-trainee")
+        mockMvc.perform(put("/api/v1/trainees/update-trainee")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(updates)))
                 .andExpect(status().isOk());
