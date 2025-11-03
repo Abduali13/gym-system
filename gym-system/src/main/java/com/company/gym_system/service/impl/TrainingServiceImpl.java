@@ -45,7 +45,7 @@ public class TrainingServiceImpl implements TrainingService {
         meterRegistry.counter("trainings_created_total").increment();
         log.info("[{}] Training created successfully with id: {}", txId, training.getTrainingId());
         try {
-            workloadClient.sendUpdate(training, com.company.workload.model.WorkloadUpdateRequest.ActionType.ADD, txId);
+            workloadClient.sendUpdate(training, com.company.gym_system.integration.dto.WorkloadUpdateRequest.ActionType.ADD, txId);
         } catch (Exception e) {
             log.error("[{}] Failed to notify workload service for ADD: {}", txId, e.getMessage());
         }
@@ -113,7 +113,7 @@ public class TrainingServiceImpl implements TrainingService {
         meterRegistry.counter("trainings_deleted_total").increment();
         log.info("[{}] Training deleted id: {}", txId, id);
         try {
-            workloadClient.sendUpdate(training, com.company.workload.model.WorkloadUpdateRequest.ActionType.DELETE, txId);
+            workloadClient.sendUpdate(training, com.company.gym_system.integration.dto.WorkloadUpdateRequest.ActionType.DELETE, txId);
         } catch (Exception e) {
             log.error("[{}] Failed to notify workload service for DELETE: {}", txId, e.getMessage());
         }

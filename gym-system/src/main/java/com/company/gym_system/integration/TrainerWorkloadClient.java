@@ -2,8 +2,7 @@ package com.company.gym_system.integration;
 
 import com.company.gym_system.entity.Trainer;
 import com.company.gym_system.entity.Training;
-import com.company.gym_system.util.JwtUtil;
-import com.company.workload.model.WorkloadUpdateRequest;
+import com.company.gym_system.integration.dto.WorkloadUpdateRequest;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,8 +19,8 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class TrainerWorkloadClient {
 
-    private final JwtUtil jwtUtil;
-    private final RestTemplate restTemplate = new RestTemplate();
+    private final JwtTokenProvider tokenProvider;
+    private final RestTemplate restTemplate;
 
     private String serviceBaseUrl() {
         // For simplicity, call localhost:8081. With Eureka, you could switch to discovery lookup.
@@ -43,7 +42,7 @@ public class TrainerWorkloadClient {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.set("X-Transaction-Id", transactionId != null ? transactionId : UUID.randomUUID().toString());
-        String token = jwtUtil.generateToken("gym-system");
+        String token = tokenProvider.generateServiceToken();
         headers.setBearerAuth(token);
 
         HttpEntity<WorkloadUpdateRequest> entity = new HttpEntity<>(req, headers);

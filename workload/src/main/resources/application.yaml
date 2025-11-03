@@ -1,0 +1,21 @@
+spring:
+  application:
+    name: workload-service
+  security:
+    jwt:
+      secret: testSecretKeyForJWT-ChangeMe-AtLeast-32-Bytes
+
+server:
+  port: 8081
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    path: /swagger-ui.html
