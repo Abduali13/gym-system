@@ -3,14 +3,14 @@ package com.company.gym_system.integration;
 import com.company.gym_system.entity.Trainer;
 import com.company.gym_system.entity.Training;
 import com.company.gym_system.integration.dto.WorkloadUpdateRequest;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.jms.core.JmsTemplate;
+import org.springframework.jms.core.MessagePostProcessor;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestTemplate;
 
 import java.util.UUID;
 
@@ -20,12 +20,10 @@ import java.util.UUID;
 public class TrainerWorkloadClient {
 
     private final JwtTokenProvider tokenProvider;
-    private final RestTemplate restTemplate;
+    private final JmsTemplate jmsTemplate;
 
-    private String serviceBaseUrl() {
-        // For simplicity, call localhost:8081. With Eureka, you could switch to discovery lookup.
-        return "http://localhost:8081";
-    }
+    @Value("${app.jms.queue.workload-update:workload.update}")
+    private String workloadUpdateQueue;
 
     @CircuitBreaker(name = "workloadService", fallbackMethod = "fallback")
     public void sendUpdate(Training training, WorkloadUpdateRequest.ActionType action, String transactionId) {
@@ -39,16 +37,15 @@ public class TrainerWorkloadClient {
         req.setTrainingDuration(training.getTrainingDuration());
         req.setAction(action);
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.set("X-Transaction-Id", transactionId != null ? transactionId : UUID.randomUUID().toString());
+        String txId = transactionId != null ? transactionId : UUID.randomUUID().toString();
         String token = tokenProvider.generateServiceToken();
-        headers.setBearerAuth(token);
-
-        HttpEntity<WorkloadUpdateRequest> entity = new HttpEntity<>(req, headers);
-        String url = serviceBaseUrl() + "/workloads";
-        restTemplate.postForEntity(url, entity, Void.class);
-        log.info("[{}] Sent {} workload update to {}", headers.getFirst("X-Transaction-Id"), action, url);
+        MessagePostProcessor mpp = message -> {
+            message.setStringProperty("X-Transaction-Id", txId);
+            message.setStringProperty("Authorization", "Bearer " + token);
+            return message;
+        };
+        jmsTemplate.convertAndSend(workloadUpdateQueue, req, mpp);
+        log.info("[{}] Sent {} workload update via JMS queue {}", txId, action, workloadUpdateQueue);
     }
 
     public void fallback(Training training, WorkloadUpdateRequest.ActionType action, String transactionId, Throwable t) {
