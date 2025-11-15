@@ -9,6 +9,9 @@ server:
   port: 8081
 
 management:
+  health:
+    jms:
+      enabled: ${app.jms.enabled:false}
   endpoints:
     web:
       exposure:
@@ -19,3 +22,12 @@ springdoc:
     enabled: true
   swagger-ui:
     path: /swagger-ui.html
+
+app:
+  jms:
+    enabled: false
+
+logging:
+  level:
+    org:springframework: INFO
+    com:company.workload: INFO

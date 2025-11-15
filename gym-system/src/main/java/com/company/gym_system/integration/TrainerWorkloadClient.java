@@ -4,7 +4,6 @@ import com.company.gym_system.entity.Trainer;
 import com.company.gym_system.entity.Training;
 import com.company.gym_system.integration.dto.WorkloadUpdateRequest;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -25,7 +24,6 @@ public class TrainerWorkloadClient {
     @Value("${app.jms.queue.workload-update:workload.update}")
     private String workloadUpdateQueue;
 
-    @CircuitBreaker(name = "workloadService", fallbackMethod = "fallback")
     public void sendUpdate(Training training, WorkloadUpdateRequest.ActionType action, String transactionId) {
         Trainer trainer = training.getTrainer();
         WorkloadUpdateRequest req = new WorkloadUpdateRequest();
@@ -48,7 +46,4 @@ public class TrainerWorkloadClient {
         log.info("[{}] Sent {} workload update via JMS queue {}", txId, action, workloadUpdateQueue);
     }
 
-    public void fallback(Training training, WorkloadUpdateRequest.ActionType action, String transactionId, Throwable t) {
-        log.error("[{}] Workload service call failed for action {}: {}", transactionId, action, t.getMessage());
-    }
 }
