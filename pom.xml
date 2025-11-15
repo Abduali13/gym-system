@@ -29,6 +29,7 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-jms</artifactId>
             <version>4.0.0-RC2</version>
+<!--        Having troubles with dependencies, that is why I am using it -->
         </dependency>
     </dependencies>
 

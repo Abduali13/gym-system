@@ -1,5 +1,6 @@
 package com.company.workload.config;
 
+import com.company.workload.model.WorkloadUpdateRequest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import jakarta.jms.*;
@@ -13,6 +14,9 @@ import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.support.converter.MappingJackson2MessageConverter;
 import org.springframework.jms.support.converter.MessageConverter;
 import org.springframework.jms.support.converter.MessageType;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @Configuration
 @EnableJms
@@ -37,6 +41,9 @@ public class JmsConfig {
         ObjectMapper mapper = new ObjectMapper();
         mapper.registerModule(new JavaTimeModule());
         converter.setObjectMapper(mapper);
+        Map<String, Class<?>> typeIdMappings = new HashMap<>();
+        typeIdMappings.put("WorkloadUpdateRequest", WorkloadUpdateRequest.class);
+        converter.setTypeIdMappings(typeIdMappings);
         return converter;
     }
 

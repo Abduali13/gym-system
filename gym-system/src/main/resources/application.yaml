@@ -27,6 +27,9 @@ spring:
       enabled: false
 
 management:
+  health:
+    jms:
+      enabled: ${app.jms.enabled:false}
   endpoints:
     web:
       exposure:
@@ -48,3 +51,10 @@ eureka:
     fetchRegistry: false
   instance:
     preferIpAddress: false
+
+app:
+  jms:
+    enabled: false
+    broker-url: tcp://localhost:61616
+    queue:
+      workload-update: workload.update
